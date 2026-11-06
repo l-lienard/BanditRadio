@@ -1,0 +1,21 @@
+module BanditRadio
+{
+    imports
+    {
+        Base
+    }
+
+    /* Walkie-talkie volé aux bandits. La charge de pile est gérée en Lua
+       (modData "BR_charge"), pas via le système de radio vanilla. */
+    item BanditRadio
+    {
+        DisplayName = Bandit Radio,
+        DisplayCategory = Communications,
+        ItemType = base:normal,
+        Weight = 0.8,
+        Icon = BanditRadio,
+        Tooltip = Tooltip_BanditRadio,
+        ConditionMax = 10,
+        MetalValue = 15,
+    }
+}

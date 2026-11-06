@@ -1,0 +1,81 @@
+VERSION = 1,
+
+option BanditRadio.Range
+{
+    type = integer,
+    min = 100,
+    max = 20000,
+    default = 1500,
+    page = BanditRadio,
+    translation = BanditRadio_Range,
+}
+
+option BanditRadio.ScanInterval
+{
+    type = integer,
+    min = 10,
+    max = 240,
+    default = 30,
+    page = BanditRadio,
+    translation = BanditRadio_ScanInterval,
+}
+
+option BanditRadio.DropChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 8,
+    page = BanditRadio,
+    translation = BanditRadio_DropChance,
+}
+
+option BanditRadio.BatteryHours
+{
+    type = integer,
+    min = 1,
+    max = 500,
+    default = 36,
+    page = BanditRadio,
+    translation = BanditRadio_BatteryHours,
+}
+
+option BanditRadio.ExactCoordinates
+{
+    type = boolean,
+    default = false,
+    page = BanditRadio,
+    translation = BanditRadio_ExactCoordinates,
+}
+
+option BanditRadio.Static
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_Static,
+}
+
+option BanditRadio.WorldLoot
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_WorldLoot,
+}
+
+option BanditRadio.Overhead
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_Overhead,
+}
+
+option BanditRadio.LogWhenOff
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_LogWhenOff,
+}

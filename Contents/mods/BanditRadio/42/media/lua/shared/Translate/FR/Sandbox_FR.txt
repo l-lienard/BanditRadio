@@ -1,0 +1,15 @@
+Sandbox_FR = {
+    Sandbox_BanditRadio = "Radio Bandit",
+    Sandbox_BanditRadio_Range = "Portée d'écoute (cases)",
+    Sandbox_BanditRadio_Range_tooltip = "Distance maximale à laquelle on capte les transmissions des bandits.",
+    Sandbox_BanditRadio_ScanInterval = "Intervalle d'analyse (minutes en jeu)",
+    Sandbox_BanditRadio_ScanInterval_tooltip = "Fréquence d'analyse des mouvements. Plus bas = plus de rapports, un peu plus de CPU.",
+    Sandbox_BanditRadio_DropChance = "Chance qu'un bandit lâche sa radio (%)",
+    Sandbox_BanditRadio_BatteryHours = "Autonomie de la pile (heures d'écoute en jeu)",
+    Sandbox_BanditRadio_ExactCoordinates = "Afficher les coordonnées exactes",
+    Sandbox_BanditRadio_ExactCoordinates_tooltip = "Si désactivé, les positions sont décrites par rapport à la ville la plus proche.",
+    Sandbox_BanditRadio_Static = "Brouillage selon la distance",
+    Sandbox_BanditRadio_WorldLoot = "Radios bandit dans le loot du monde",
+    Sandbox_BanditRadio_Overhead = "Messages en direct au-dessus du joueur",
+    Sandbox_BanditRadio_LogWhenOff = "Enregistrer les messages radio éteinte",
+}

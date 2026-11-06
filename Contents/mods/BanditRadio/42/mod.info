@@ -1,0 +1,10 @@
+name=Bandit Radio
+id=BanditRadio
+author=Lorenzo
+description=Addon for Bandits NPC (v2). Loot a bandit radio, tune into their frequency and track every faction: group size, weapons, movements toward towns, zones or players.
+require=\Bandits2
+poster=poster.png
+icon=icon.png
+modversion=1.1.0
+versionMin=42.0
+url=https://github.com/YOUR_GITHUB_USERNAME/BanditRadio
