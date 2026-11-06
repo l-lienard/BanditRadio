@@ -5,6 +5,6 @@ description=Addon for Bandits NPC (v2). Loot a bandit radio and hear everything 
 require=\Bandits2
 poster=poster.png
 icon=icon.png
-modversion=2.0.0
+modversion=2.0.1
 versionMin=42.0
 url=https://github.com/l-lienard/BanditRadio
