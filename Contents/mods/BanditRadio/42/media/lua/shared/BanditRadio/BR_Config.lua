@@ -2,7 +2,7 @@
 -- Addon pour Bandits NPC (v2) de Slayer. Licence MIT.
 
 BanditRadio = BanditRadio or {}
-BanditRadio.VERSION = "2.0.0"
+BanditRadio.VERSION = "2.0.1"
 BanditRadio.MODULE = "BanditRadio"          -- module réseau (sendServerCommand)
 BanditRadio.ITEM = "BanditRadio.BanditRadio"
 
@@ -381,8 +381,17 @@ function BanditRadio.prettyClan(raw)
         end
     end
     -- Inconnu : on nettoie juste ("dark_riders" -> "Dark Riders")
+    -- (Kahlua ne passe qu'une capture aux fonctions de gsub : on reste sur des motifs simples)
     name = string.gsub(name, "[_%-]+", " ")
-    name = string.gsub(name, "(%l)(%u)", "%1 %2")
-    name = string.gsub(name, "(%a)([%w]*)", function(a, b) return string.upper(a) .. b end)
+    local spaced = ""
+    for i = 1, #name do
+        local ch = string.sub(name, i, i)
+        local prev = (i > 1) and string.sub(name, i - 1, i - 1) or ""
+        if string.find(ch, "%u") and string.find(prev, "%l") then spaced = spaced .. " " end
+        spaced = spaced .. ch
+    end
+    name = string.gsub(spaced, "%a[%w]*", function(w)
+        return string.upper(string.sub(w, 1, 1)) .. string.sub(w, 2)
+    end)
     return name
 end
