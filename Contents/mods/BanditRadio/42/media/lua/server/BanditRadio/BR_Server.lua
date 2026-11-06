@@ -4,6 +4,7 @@
 require "BanditRadio/BR_Config"
 require "BanditRadio/BR_Adapter"
 require "BanditRadio/BR_Intel"
+require "BanditRadio/BR_API"
 
 if isClient() then return end   -- en multijoueur, seul le serveur fait le travail
 
@@ -30,8 +31,8 @@ end
 function S.scan()
     local interval = BanditRadio.opt("ScanInterval")
     local ok, err = pcall(function()
-        local bandits = BanditRadio.Adapter.listBandits()
-        local reports = BanditRadio.Intel.update(S.state, bandits, nowMinutes(), interval)
+        local scan = BanditRadio.Adapter.scan()
+        local reports = BanditRadio.Intel.update(S.state, scan, nowMinutes(), interval)
         S.dispatch({
             time = nowMinutes(),
             reports = reports,

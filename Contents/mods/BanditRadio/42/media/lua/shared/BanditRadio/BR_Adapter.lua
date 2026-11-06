@@ -120,13 +120,22 @@ function A.getWeaponClass(zombie, brain)
 end
 
 ---------------------------------------------------------------------------
--- Cible / activité
+-- Cible / activité / état
 ---------------------------------------------------------------------------
-function A.getTargetPlayerName(zombie)
+-- Renvoie type de cible ("player" | "bandit" | "zombie" | nil), nom du joueur, clan visé
+function A.getTarget(zombie)
     local target = try(function() return zombie:getTarget() end)
-    if target and instanceof(target, "IsoPlayer") then
-        return try(function() return target:getUsername() end)
+    if not target then return nil end
+    if instanceof(target, "IsoPlayer") then
+        local name = try(function() return target:getUsername() end)
             or try(function() return target:getDisplayName() end)
+        return "player", name, nil
+    end
+    if instanceof(target, "IsoZombie") then
+        if A.isBandit(target) then
+            return "bandit", nil, A.getClanId(A.getBrain(target))
+        end
+        return "zombie", nil, nil
     end
     return nil
 end
@@ -143,30 +152,103 @@ function A.getHostile(brain)
     return nil
 end
 
+function A.isSleeping(brain)
+    return brain and brain.sleeping == true or false
+end
+
+function A.inVehicle(zombie, brain)
+    if brain and brain.inVehicle then return true end
+    local v = try(function() return zombie:getVehicle() end)
+    return v ~= nil
+end
+
+function A.getId(zombie, brain)
+    if brain and brain.id ~= nil then return tostring(brain.id) end
+    local id = try(function() return zombie:getOnlineID() end)
+    if id and id ~= -1 then return tostring(id) end
+    return tostring(try(function() return zombie:getID() end) or zombie)
+end
+
+-- Nom de la pièce où se trouve le bandit ("gasstore", "policestorage"...), sinon nil
+function A.getRoomName(zombie)
+    return try(function()
+        local sq = zombie:getSquare()
+        local room = sq and sq:getRoom()
+        return room and room:getName() or nil
+    end)
+end
+
 ---------------------------------------------------------------------------
--- Liste de tous les bandits chargés côté serveur (ou solo)
+-- Joueurs (solo : joueurs locaux / multi : joueurs connectés)
 ---------------------------------------------------------------------------
-function A.listBandits()
+function A.listPlayers()
     local out = {}
-    local cell = try(getCell)
-    if not cell then return out end
-    local list = try(function() return cell:getZombieList() end)
-    if not list then return out end
-    for i = 0, list:size() - 1 do
-        local z = list:get(i)
-        if z and not try(function() return z:isDead() end) and A.isBandit(z) then
-            local brain = A.getBrain(z)
-            local cid = A.getClanId(brain)
-            out[#out + 1] = {
-                x = z:getX(), y = z:getY(),
-                clan = cid,
-                clanName = A.getClanName(cid),
-                weapon = A.getWeaponClass(z, brain),
-                target = A.getTargetPlayerName(z),
-                activity = A.getActivity(brain),
-                hostile = A.getHostile(brain),
-            }
+    local list = try(getOnlinePlayers)
+    if list and list:size() > 0 then
+        for i = 0, list:size() - 1 do
+            local p = list:get(i)
+            if p and not p:isDead() then
+                out[#out + 1] = { name = p:getUsername(), x = p:getX(), y = p:getY() }
+            end
+        end
+        return out
+    end
+    for i = 0, 3 do
+        local p = try(getSpecificPlayer, i)
+        if p and not p:isDead() then
+            out[#out + 1] = { name = try(function() return p:getUsername() end) or ("Player" .. (i + 1)),
+                x = p:getX(), y = p:getY() }
         end
     end
     return out
+end
+
+---------------------------------------------------------------------------
+-- Balayage complet (côté serveur ou solo)
+--   bandits : liste détaillée
+--   zgrid   : nombre de zombies "normaux" par case de 20x20 (pour les combats)
+--   players : positions des joueurs
+---------------------------------------------------------------------------
+A.GRID = 20
+
+function A.scan()
+    local result = { bandits = {}, zgrid = {}, players = A.listPlayers() }
+    local cell = try(getCell)
+    if not cell then return result end
+    local list = try(function() return cell:getZombieList() end)
+    if not list then return result end
+    for i = 0, list:size() - 1 do
+        local z = list:get(i)
+        if z and not try(function() return z:isDead() end) then
+            local brain = A.getBrain(z)
+            if brain or A.isBandit(z) then
+                local cid = A.getClanId(brain)
+                local ttype, tname, tclan = A.getTarget(z)
+                result.bandits[#result.bandits + 1] = {
+                    id = A.getId(z, brain),
+                    x = z:getX(), y = z:getY(),
+                    clan = cid,
+                    clanName = A.getClanName(cid),
+                    weapon = A.getWeaponClass(z, brain),
+                    target = (ttype == "player") and tname or nil,
+                    targetType = ttype,
+                    targetClan = tclan,
+                    activity = A.getActivity(brain),
+                    hostile = A.getHostile(brain),
+                    room = A.getRoomName(z),
+                    vehicle = A.inVehicle(z, brain),
+                    sleeping = A.isSleeping(brain),
+                }
+            else
+                local key = math.floor(z:getX() / A.GRID) .. "," .. math.floor(z:getY() / A.GRID)
+                result.zgrid[key] = (result.zgrid[key] or 0) + 1
+            end
+        end
+    end
+    return result
+end
+
+-- Compatibilité
+function A.listBandits()
+    return A.scan().bandits
 end

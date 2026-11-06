@@ -8,6 +8,8 @@
 
 require "BanditRadio/BR_Config"
 require "BanditRadio/BR_Intel"
+require "BanditRadio/BR_API"
+require "BanditRadio/BR_Map"
 
 BanditRadio.Client = BanditRadio.Client or {}
 local C = BanditRadio.Client
@@ -165,6 +167,61 @@ function C.garble(text, clarity)
     return s
 end
 
+-- Texte d'une entrée du journal dans la langue courante.
+-- Le brouillage est tiré une seule fois par langue (pas de clignotement).
+function C.entryText(e)
+    local lang = BanditRadio.lang()
+    if not e.cache[lang] then
+        e.cache[lang] = C.garble((BanditRadio.Intel.formatReport(e.r, e.level)), e.clarity)
+    end
+    return e.cache[lang]
+end
+
+---------------------------------------------------------------------------
+-- Choix de la langue (AUTO -> FR -> EN), sauvegardé dans Zomboid/Lua/
+---------------------------------------------------------------------------
+C.LANG_FILE = "BanditRadio_settings.txt"
+C.LANG_CYCLE = { [""] = "FR", FR = "EN", EN = "" }
+
+function C.saveLanguage()
+    pcall(function()
+        local w = getFileWriter(C.LANG_FILE, true, false)
+        w:write("lang=" .. (BanditRadio.langOverride or "") .. "\r\n")
+        w:write("map=" .. (BanditRadio.Map.enabled and "1" or "0") .. "\r\n")
+        w:close()
+    end)
+end
+
+function C.loadLanguage()
+    pcall(function()
+        local r = getFileReader(C.LANG_FILE, false)
+        if not r then return end
+        local line = r:readLine()
+        while line do
+            local code = string.match(line, "^lang=(%a*)")
+            if code and code ~= "" and BanditRadio.Strings[code] then BanditRadio.langOverride = code end
+            local map = string.match(line, "^map=(%d)")
+            if map then BanditRadio.Map.enabled = (map == "1") end
+            line = r:readLine()
+        end
+        r:close()
+    end)
+end
+
+function C.cycleLanguage()
+    local nxt = C.LANG_CYCLE[BanditRadio.langOverride or ""] or ""
+    BanditRadio.langOverride = (nxt ~= "") and nxt or nil
+    C.saveLanguage()
+    refreshWindow()
+end
+Events.OnGameStart.Add(C.loadLanguage)
+
+function C.toggleMap()
+    BanditRadio.Map.enabled = not BanditRadio.Map.enabled
+    C.saveLanguage()
+    refreshWindow()
+end
+
 ---------------------------------------------------------------------------
 -- Réception des paquets du serveur
 ---------------------------------------------------------------------------
@@ -211,12 +268,17 @@ function C.onIntel(packet)
         local d = distTo(player, r.x, r.y)
         if d <= range then
             local clarity = C.clarity(d, range)
-            local text = C.garble(BanditRadio.Intel.formatReport(r), clarity)
-            table.insert(C.feed, 1, { time = stamp, text = text, clarity = clarity,
-                kind = r.kind, missed = not listening })
+            -- Signal faible : une info complète n'arrive qu'à moitié
+            local level = r.level or "full"
+            if clarity < 0.35 and level == "full" then level = "partial" end
+            local e = { time = stamp, r = r, level = level, clarity = clarity,
+                kind = r.kind, missed = not listening, cache = {} }
+            table.insert(C.feed, 1, e)
+            BanditRadio.Map.addFromReport(r, level)
+            for _, fn in ipairs(BanditRadio.API.listeners) do pcall(fn, r, C.entryText(e)) end
             if listening then
                 if BanditRadio.opt("Overhead") then
-                    C.overheadQueue[#C.overheadQueue + 1] = { text = text, col = BanditRadio.colorFor(r.kind) }
+                    C.overheadQueue[#C.overheadQueue + 1] = { text = C.entryText(e), col = BanditRadio.colorFor(r.kind) }
                 end
             else
                 C.unread = C.unread + 1

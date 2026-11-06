@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>An open-source addon for <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3268487204">Bandits NPC (v2)</a> — Project Zomboid Build 42</b><br>
-  Loot a bandit's walkie-talkie, tune into their frequency, and know where every faction is heading.
+  Loot a bandit's walkie-talkie, tune into their frequency and know everything they do around you.
 </p>
 
 <p align="center">
@@ -14,6 +14,7 @@
   <img alt="Requires" src="https://img.shields.io/badge/requires-Bandits2-555">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
   <img alt="MP" src="https://img.shields.io/badge/singleplayer%20%2B%20multiplayer-yes-blue">
+  <img alt="Moddable" src="https://img.shields.io/badge/API-for%20modders-orange">
 </p>
 
 <p align="center"><a href="#-version-française">🇫🇷 Version française plus bas</a></p>
@@ -22,120 +23,165 @@
 
 ## What it does
 
-Bandits roam Knox County in organised clans. Bandit Radio lets you listen in to them.
+Bandits roam Knox County in organised clans. With a **Bandit Radio**, anything they do within range goes out on their frequency, and you hear it.
 
-- 📻 **Two ways to use it**, like a vanilla portable radio:
-  - **Radio ON**: intercepts appear **live above your character**, colour-coded (red = a group is hunting a player).
-  - **Radio OFF** (but carried): messages are still **saved to the radio log**, marked *[missed]*, and you can read them later in the interface.
-- 📦 **New item: Bandit Radio.** Sometimes dropped by killed bandits, rarely found in police stations, army surplus and electronics stores.
-- 🛰️ **Movement intercepts.** The mod follows every bandit group over time and works out where it is going:
-  - toward a **town** (with an estimated arrival time),
-  - toward a **player** it is hunting,
-  - in a **direction** across the wilds,
-  - or **holding position** somewhere.
-- 🗂️ **Faction intel.** For each clan you have heard: how many members, how many groups, firearms vs melee, last known position, current activity, hostility and losses.
-- 📉 **Event reports.** New contacts, men lost after a fight, groups that go silent.
-- 🔋 **Battery & range.** The radio drains while you listen. Swap in a standard battery to recharge it. Only transmissions within range are heard, and far ones get garbled by static.
-- 🌍 **FR / EN** in-game, multiplayer-ready (the server analyses, each client formats messages in its own language).
+![Map overlay](docs/screenshots/map_overlay.png)
+
+### 📡 Every bandit activity is reported
+
+| Category | Events |
+|---|---|
+| **Movement** | new contact · trip **from A to B with ETA** · moving in a direction · arrival · camp set up · resting · reinforcements · several groups **gathering** |
+| **Looting** | group looting a building (gas station, police station, pharmacy, farm…) |
+| **Combat** | **gunshots** · fighting zombies · **overrun by a horde** · **clash between two factions** |
+| **Players** | a group **hunting** a player · a group **closing in** on a player (with ETA) |
+| **Losses** | men lost · group **wiped out** (bodies and loot left behind) · group gone silent |
+| **Ambient** | random radio chatter, static, and optional **false rumors** |
+
+Positions are **vague on purpose**: "near a gas station in Muldraugh", "outside Rosewood". You never get exact coordinates.
+
+### 🎚️ Reliability: full intel, partial info or rumors
+Pick how much you can trust the radio:
+
+| Mode | What you get |
+|---|---|
+| **Complete** (default) | every event, in full detail |
+| **Realistic** | a mix: *"[Militia] 5 men are looting the gas station in Muldraugh"* / *"[???] Someone is looting a gas station"* / *"(rumor) Heard breaking glass near Muldraugh"*… or nothing at all |
+| **Rumors only** | vague information only |
+
+Add **false rumors** (0–50 %) and you can never fully trust what you hear. A weak signal (far away) also downgrades full intel to partial info.
+
+### 🗺️ Live map overlay
+- Each intercept becomes a **blurry zone** on the world map and minimap, **coloured by faction** (grey = rumor, white = unknown faction).
+- Trips are drawn as **dotted paths** to the target town, with a live **ETA countdown**.
+- Faction **legend**, and zones that fade and disappear after a configurable time.
+
+### 📻 Two ways to listen
+- **Radio ON**: intercepts appear live **above your character**, colour-coded (red = someone is hunting a player).
+- **Radio OFF** (but carried): messages are still saved to the **radio log** as *[missed]*.
+- **Radio window**: *Intercepts* log, *Factions* tab (members, groups, weapons, last position, activity, losses), **Map ON/OFF**, **AUTO / FR / EN** language and **ON/OFF** buttons.
+
+### 🔋 And more
+- **Bandit Radio item**: dropped by killed bandits, rarely found in police / army / electronics loot.
+- Battery system (any standard battery), listening range, distance-based static.
+- Clean, translated faction names (`12_Militia` → *Militia* / *Milice*).
+- Singleplayer & multiplayer: the server analyses, each client formats messages in its own language.
 
 ## Screenshots
 
-> ⚠️ These are **mockups** of the interface. Replace them with in-game captures before release.
+> ⚠️ **Mockups.** To be replaced with in-game captures.
 
-**Radio ON - live messages above the player**
-
-![Overhead messages](docs/screenshots/overhead.png)
-
-| Radio log (Intercepts) | Factions |
+| Live messages above the player | Radio log |
 |---|---|
-| ![Intercepts tab](docs/screenshots/ui_feed.png) | ![Factions tab](docs/screenshots/ui_factions.png) |
+| ![Overhead](docs/screenshots/overhead.png) | ![Log](docs/screenshots/ui_feed.png) |
 
-![Context menu](docs/screenshots/context_menu.png)
+| Factions | Context menu |
+|---|---|
+| ![Factions](docs/screenshots/ui_factions.png) | ![Menu](docs/screenshots/context_menu.png) |
 
 ## Installation
 
-**Steam Workshop:** subscribe to *Bandits NPC* and *Bandit Radio*, then enable both (Bandits must load first).
+**Steam Workshop:** subscribe to *Bandits NPC* and *Bandit Radio*, then enable both (Bandits first).
 
-**Manual / from GitHub:**
-1. Download or clone this repo.
-2. Copy the whole folder to `C:\Users\<you>\Zomboid\Workshop\BanditRadio\` (Linux/macOS: `~/Zomboid/Workshop/BanditRadio/`).
-3. Enable **Bandits NPC** and **Bandit Radio** in the Mods menu.
+**From GitHub:** download the latest [release](../../releases), extract it to `C:\Users\<you>\Zomboid\Workshop\` and enable both mods.
 
 ## How to use
 
 1. Get a Bandit Radio (kill bandits, or search police / army / electronics loot).
-2. Right-click it in your inventory:
-   - **Turn on bandit radio**: live messages above your head. Drains the battery.
-   - **Open radio log**: opens the interface, even when the radio is off. The counter shows how many messages you missed.
-3. Reports arrive at every scan (every 30 in-game minutes by default).
-4. The **Factions** tab gives a summary of every clan within range.
-5. Out of battery? Carry a **Battery** and right-click → **Replace battery**. A switched-off radio uses no battery but still logs messages.
-
-The radio works from your inventory or any bag you carry. The **ON/OFF** button in the interface also switches it on and off.
+2. Right-click it:
+   - **Turn on bandit radio**: live messages above your head (drains the battery)
+   - **Open radio log (X new)**: log, factions, map toggle and language
+   - **Replace battery**: needs a battery in your inventory
+3. Open the map (**M**) to see the zones.
 
 ## Sandbox options
 
 | Option | Default | Description |
 |---|---|---|
 | Listening range | 1500 tiles | Max distance of heard transmissions |
-| Scan interval | 30 min | How often bandit movements are analysed |
+| Scan interval | 30 min | How often bandit activity is analysed |
+| Information reliability | Complete | Complete / Realistic / Rumors only |
+| False rumors | 0 % | Chance per scan of a fake rumor |
+| Ambient chatter | 15 % | Chance per scan of a flavour message |
+| Events: movements / looting / combat / players / losses / ambient | on | Toggle each category |
+| Map zones | on | Show intel zones on the map |
+| Map zones lifetime | 12 h | How long a zone stays on the map |
 | Drop chance | 8 % | Chance a killed bandit drops a radio |
 | Battery life | 36 h | In-game hours of listening per battery |
-| Exact coordinates | off | Show `(x, y)` instead of "north of Muldraugh" |
 | Static interference | on | Far messages get garbled |
 | World loot | on | Radios spawn in world containers |
-| Overhead messages | on | Radio ON: show intercepts above the player |
-| Log when off | on | Radio OFF but carried: save intercepts as *missed* |
+| Messages above player | on | Radio ON: show intercepts overhead |
+| Log when off | on | Radio OFF but carried: save intercepts |
+
+## Customize it
+
+Everything is meant to be changed:
+
+| File | What you can change |
+|---|---|
+| `shared/BanditRadio/BR_Messages.lua` | **Every radio message**, for each event and detail level, in each language. Lists = random variants |
+| `shared/BanditRadio/BR_Config.lua` | Towns, building types, faction names and colours, UI strings |
+| `shared/BanditRadio/BR_Intel.lua` (top) | Detection settings: group radius, horde size, camp delay, gathering size… |
+
+### API for other mods
+
+```lua
+require "BanditRadio/BR_API"
+local API = BanditRadio.API
+
+API.addTown("My Village", 5000, 7000)
+API.addClanName("cartel", { EN = "Cartel", FR = "Cartel" })
+API.setFactionColor("Cartel", 0.9, 0.1, 0.9)
+
+-- A new event type, with its messages
+API.addMessages("EN", "convoy", { full = "Convoy of {n} vehicles {pos}!", rumor = "Engines heard {area}." })
+API.addDetector("convoy", function(state, groups, scan, emit)
+    for _, g in ipairs(groups) do
+        if g.vehicle >= 3 then emit(g, "convoy") end
+    end
+end)
+
+-- Client side: react to every intercept (sound, Discord relay, achievements...)
+API.onReport(function(report, text) print(text) end)
+```
 
 ## How it works
 
 ```
-Contents/mods/BanditRadio/42/media/lua/
+media/lua/
 ├── shared/BanditRadio/
-│   ├── BR_Config.lua    -- options, town list, FR/EN strings, geo helpers
-│   ├── BR_Adapter.lua   -- ONLY file that talks to Bandits (brain, clan, weapons, target)
-│   └── BR_Intel.lua     -- pure logic: clustering, tracking, destination guess, reports
-├── server/BanditRadio/
-│   └── BR_Server.lua    -- periodic scan, network broadcast, loot
+│   ├── BR_Config.lua    -- options, towns, places, faction names/colours, UI strings
+│   ├── BR_Messages.lua  -- all radio messages (editable templates)
+│   ├── BR_Adapter.lua   -- ONLY file that talks to Bandits
+│   ├── BR_Intel.lua     -- event engine (pure logic, testable outside the game)
+│   └── BR_API.lua       -- public API
+├── server/BanditRadio/BR_Server.lua    -- scan + broadcast + loot
 └── client/BanditRadio/
-    ├── BR_Client.lua    -- radio state, battery, range, static
-    ├── BR_Window.lua    -- UI (Intercepts / Factions)
+    ├── BR_Client.lua    -- radio state, battery, range, static, log
+    ├── BR_Map.lua       -- world map / minimap overlay
+    ├── BR_Window.lua    -- radio window
     └── BR_ContextMenu.lua
 ```
 
-1. Every *Scan interval*, the **server** lists the loaded bandits through `BR_Adapter`.
-2. `BR_Intel` groups them by clan and proximity, matches each group to the previous scan, and works out the heading. It then checks whether the group targets a player, or whether a town lies inside a 30° cone ahead and is getting closer.
-3. Structured reports are broadcast to clients. Each client keeps only what is in range of its player, then formats, garbles and displays it.
+1. Every *scan interval*, the **server** reads every loaded bandit through `BR_Adapter`: position, clan, weapon, target, vehicle, sleep, building, plus the zombies around.
+2. `BR_Intel` groups bandits by clan and proximity and tracks each group between scans by its members. It compares positions, headcounts, targets and nearby zombies to detect events.
+3. Each event gets a detail level (reliability) and is broadcast. Each client keeps what is in range, formats it in its language, shows it overhead or in the log, and draws it on the map.
 
-> **Note:** like the game itself, the mod only "hears" bandits in **loaded areas** (around players). Groups that leave the loaded zone are reported as *went silent*.
+> Like the game itself, the mod only "hears" bandits in **loaded areas** (around players).
 
-### Compatibility with Bandits updates
-
-Bandits has no documented public API. All access goes through `BR_Adapter.lua`, every call is wrapped in `pcall`, and each one has a fallback:
-- bandit detection: `BanditBrain.Get(zombie)` → fallback `zombie:getVariableBoolean("Bandit")`
-- clan name: Bandit Creator clan name → fallback to a stable generated name
-- weapons: `brain.weapons` → fallback to the item in hand
-
-If a Bandits update breaks something, `BR_Adapter.lua` is the only file to fix.
+**Bandits compatibility:** Bandits has no public API, so every call goes through `BR_Adapter.lua`, wrapped in `pcall`, with a fallback. If a Bandits update breaks something, that is the only file to fix.
 
 ## Roadmap
-
-- [ ] Real in-game screenshots
-- [ ] Map markers for last known positions
-- [ ] Radio static sound effect
-- [ ] Persist faction intel across server restarts (ModData)
+- [ ] Real screenshots
+- [ ] Radio static sound + `onReport` sound pack
+- [ ] Persist intel across server restarts
+- [ ] Jam a faction's frequency / broadcast fake info to lure a clan
 - [ ] More languages (PR welcome!)
-- [ ] Verify coordinates of B42 towns (Ekron, Irvington, Brandenburg, Echo Creek)
 
 ## Contributing
-
-PRs are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). Easy first contributions:
-- add or fix towns in `BanditRadio.Locations` (`BR_Config.lua`)
-- add a language in `BanditRadio.Strings` + `Translate/<LANG>/`
-- map more Bandits program names in `BR_Window.lua`
+See [CONTRIBUTING.md](CONTRIBUTING.md). Easy first PRs: messages, translations, towns, building types, faction names.
 
 ## Credits
-
 - **Slayer** for [Bandits NPC](https://steamcommunity.com/sharedfiles/filedetails/?id=3268487204). This addon only *uses* Bandits and contains none of its code.
 - Bandit Radio by **Lorenzo**. [MIT License](LICENSE).
 
@@ -143,25 +189,22 @@ PRs are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). Easy first contribution
 
 ## 🇫🇷 Version française
 
-**Bandit Radio** est un addon open source pour **Bandits NPC (v2)** sur Project Zomboid B42.
+**Bandit Radio** est un addon open source pour **Bandits NPC (v2)** sur Project Zomboid B42. Récupère le talkie d'un bandit, cale-toi sur leur fréquence, et tu sauras tout ce qu'ils font autour de toi.
 
-**Le principe :** tu récupères la radio d'un bandit, tu te mets sur leur fréquence, et tu sais ce que fait chaque faction autour de toi.
+**Tout est signalé :**
+- **Déplacements** : contact, trajet **de A vers B avec l'heure d'arrivée**, arrivée, camp, repos, renforts, **rassemblements**
+- **Pillages** de bâtiments (station-service, commissariat, pharmacie, ferme…)
+- **Combats** : **coups de feu**, combats contre les zombies, groupe **débordé par une horde**, **affrontements entre factions**
+- **Joueurs** : groupe qui **traque** ou **se rapproche** d'un joueur
+- **Pertes**, groupes **anéantis** (corps et loot sur place), groupes silencieux
+- **Ambiance** et **fausses rumeurs** (optionnel)
 
-- **Deux modes** :
-  - **Radio allumée** : les messages s'affichent **en direct au-dessus du perso**, comme une radio portable vanilla.
-  - **Radio éteinte** (mais sur toi) : les messages sont quand même **enregistrés dans le journal**, marqués *[manqué]*, et tu les lis plus tard dans l'interface.
-- **Interceptions** : nouveaux contacts, groupes en route vers une ville (avec heure d'arrivée estimée), groupes qui traquent un joueur, groupes stationnés, pertes après un combat, groupes qui ne répondent plus.
-- **Fiches de faction** : nombre de membres, groupes, armes à feu ou corps à corps, dernière position, activité, hostilité, pertes.
-- **Pile et portée** : la radio consomme sa pile pendant l'écoute (une pile classique la recharge). Les messages lointains sont brouillés.
-- Fonctionne en **solo et en multijoueur**, en **français et en anglais**.
+**Fiabilité réglable :** *Complète* (tout en détail), *Réaliste* (mélange d'infos complètes, partielles, de rumeurs et de silences) ou *Rumeurs uniquement*. Un signal faible dégrade aussi l'info.
 
-**Utilisation :** clic droit sur la radio →
-- *Allumer la radio bandit* : messages en direct au-dessus du perso (consomme la pile)
-- *Ouvrir le journal radio (X nouveaux)* : l'interface, utilisable même radio éteinte
-- *Changer la pile* : il faut une pile sur soi
+**Carte :** chaque info devient une **zone floue colorée par faction** sur la carte et la minicarte, avec les **trajets en pointillés**, l'**heure d'arrivée qui défile** et une légende. Les zones s'effacent avec le temps.
 
-**Installation :** abonne-toi à *Bandits NPC* et *Bandit Radio* sur le Workshop, ou copie ce dossier dans `Zomboid/Workshop/BanditRadio/`, puis active les deux mods.
+**Deux modes :** radio allumée, les messages s'affichent **au-dessus du perso** ; radio éteinte, ils vont dans le **journal** en *[manqué]*. La fenêtre a un bouton **Carte ON/OFF**, un bouton de langue **AUTO / FR / EN**, et les onglets *Interceptions* et *Factions*.
 
-Les options (portée, intervalle d'analyse, chance de drop, autonomie, coordonnées exactes, brouillage, loot) sont réglables dans les **options sandbox**.
+**Modifiable :** tous les messages sont dans `BR_Messages.lua`, et villes, bâtiments, noms et couleurs de factions dans `BR_Config.lua`. Une **API** permet à d'autres mods d'ajouter des villes, des factions ou de nouveaux types d'événements.
 
-Contributions bienvenues : villes, traductions, corrections. Voir [CONTRIBUTING.md](CONTRIBUTING.md).
+**Installation :** abonne-toi à *Bandits NPC* et *Bandit Radio* sur le Workshop, ou télécharge la [release](../../releases) et extrais-la dans `Zomboid/Workshop/`.

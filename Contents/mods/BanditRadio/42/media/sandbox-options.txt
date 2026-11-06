@@ -40,14 +40,6 @@ option BanditRadio.BatteryHours
     translation = BanditRadio_BatteryHours,
 }
 
-option BanditRadio.ExactCoordinates
-{
-    type = boolean,
-    default = false,
-    page = BanditRadio,
-    translation = BanditRadio_ExactCoordinates,
-}
-
 option BanditRadio.Static
 {
     type = boolean,
@@ -78,4 +70,100 @@ option BanditRadio.LogWhenOff
     default = true,
     page = BanditRadio,
     translation = BanditRadio_LogWhenOff,
+}
+
+option BanditRadio.Reliability
+{
+    type = enum,
+    numValues = 3,
+    default = 1,
+    page = BanditRadio,
+    translation = BanditRadio_Reliability,
+    valueTranslation = BanditRadio_Reliability,
+}
+
+option BanditRadio.FalseRumors
+{
+    type = integer,
+    min = 0,
+    max = 50,
+    default = 0,
+    page = BanditRadio,
+    translation = BanditRadio_FalseRumors,
+}
+
+option BanditRadio.AmbientChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 15,
+    page = BanditRadio,
+    translation = BanditRadio_AmbientChance,
+}
+
+option BanditRadio.EvMovement
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_EvMovement,
+}
+
+option BanditRadio.EvLoot
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_EvLoot,
+}
+
+option BanditRadio.EvCombat
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_EvCombat,
+}
+
+option BanditRadio.EvPlayers
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_EvPlayers,
+}
+
+option BanditRadio.EvLosses
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_EvLosses,
+}
+
+option BanditRadio.EvAmbient
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_EvAmbient,
+}
+
+option BanditRadio.MapMarkers
+{
+    type = boolean,
+    default = true,
+    page = BanditRadio,
+    translation = BanditRadio_MapMarkers,
+}
+
+option BanditRadio.MarkerHours
+{
+    type = integer,
+    min = 1,
+    max = 168,
+    default = 12,
+    page = BanditRadio,
+    translation = BanditRadio_MarkerHours,
 }

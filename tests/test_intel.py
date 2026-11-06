@@ -1,43 +1,86 @@
-import glob, sys
+"""Tests hors jeu de Bandit Radio (pip install lupa).
+
+1. Vérifie la syntaxe de tous les fichiers Lua du mod.
+2. Simule une partie : un groupe part de Muldraugh vers West Point, pille,
+   se fait déborder par des zombies, un autre clan l'attaque, un groupe
+   se rapproche du joueur... et affiche les messages radio générés.
+"""
+import glob
+import os
+
 try:
     from lupa import lua51 as L
 except ImportError:
     import lupa as L
+
+ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
+                                     "Contents", "mods", "BanditRadio", "42", "media", "lua")) + "/"
 lua = L.LuaRuntime()
-print(lua.eval('_VERSION'))
-import os
-root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Contents")
-root = os.path.normpath(root) + "/mods/BanditRadio/42/media/lua/"
-# 1. syntax check every file
-for f in sorted(glob.glob(root + "**/*.lua", recursive=True)):
-    src = open(f, encoding="utf-8").read()
-    r = lua.execute("return function(s, n) local f, e = loadstring and loadstring(s, n) or load(s, n); return e end")(src, f)
-    print("OK " if r is None else "ERR", f.replace(root, ""), r or "")
-# 2. run pure logic with stubs
+
+# 1. Syntaxe -----------------------------------------------------------------
+check = lua.eval("function(s, n) local f, e = loadstring(s, n); return e end")
+errors = 0
+for f in sorted(glob.glob(ROOT + "**/*.lua", recursive=True)):
+    err = check(open(f, encoding="utf-8").read(), f)
+    print(("OK  " if err is None else "ERR ") + f.replace(ROOT, ""), err or "")
+    errors += err is not None
+
+# 2. Simulation ---------------------------------------------------------------
+lua.execute('package.path = "' + ROOT + 'shared/?.lua;" .. package.path')
 lua.execute('''
-package.path = "''' + root + '''shared/?.lua;" .. package.path
 Translator = { getLanguage = function() return { name = function() return "FR" end } end }
-SandboxVars = { BanditRadio = { ExactCoordinates = false } }
+SandboxVars = { BanditRadio = { AmbientChance = 0, FalseRumors = 0, Reliability = 1 } }
+math.randomseed(1)
 require "BanditRadio/BR_Config"
+require "BanditRadio/BR_Messages"
 require "BanditRadio/BR_Intel"
+require "BanditRadio/BR_API"
 ''')
-run = lua.eval('''function()
+run = lua.eval('''function(lang)
+  BanditRadio.langOverride = lang
   local I = BanditRadio.Intel
   local st = I.newState()
   local out = {}
-  local function band(clan, x, y, n, tgt) local t = {} for i=1,n do t[#t+1] = {x=x+i, y=y, clan=clan, clanName="Ravens", weapon=(i%2==0) and "fire" or "melee", target=tgt, activity="Bandit", hostile=true} end return t end
-  local function merge(a,b) local t={} for _,v in ipairs(a) do t[#t+1]=v end for _,v in ipairs(b) do t[#t+1]=v end return t end
-  -- group A walks from (10650,8800) south toward Muldraugh (10650,9700); group B static near Rosewood
-  local steps = { 8800, 8860, 8920, 8980, 9040 }
-  for s, y in ipairs(steps) do
-    local nA = (s >= 4) and 3 or 5
-    local b = merge(band("c1", 10640, y, nA), band("c2", 8150, 11500, 4))
-    if s == 5 then b = band("c1", 10640, y, nA, "Lorenzo") end
-    local reps = I.update(st, b, s*30, 30)
-    for _, r in ipairs(reps) do out[#out+1] = "scan"..s..": "..I.formatReport(r) end
+  local function band(prefix, clan, x, y, n, extra)
+    local t = {}
+    for i = 1, n do
+      local b = { id = prefix .. i, x = x + i, y = y, clan = clan, clanName = clan,
+        weapon = (i % 2 == 0) and "fire" or "melee", hostile = true }
+      if extra then for k, v in pairs(extra) do b[k] = v end end
+      t[#t + 1] = b
+    end
+    return t
   end
-  for i=6,8 do local reps = I.update(st, {}, i*30, 30) for _, r in ipairs(reps) do out[#out+1] = "scan"..i..": "..I.formatReport(r) end end
-  for _, f in ipairs(I.snapshotFactions(st)) do out[#out+1] = "faction "..f.name.." members="..f.members.." losses="..f.losses.." fire="..f.fire end
+  local function merge(...) local t = {} for _, l in ipairs({...}) do for _, v in ipairs(l) do t[#t+1] = v end end return t end
+  local player = { { name = "Lorenzo", x = 8200, y = 11400 } }
+  local steps = {
+    -- 1. Milice à Muldraugh dans une station-service, Criminels au sud de Rosewood
+    { b = merge(band("m", "12_Militia", 10650, 9700, 5, { room = "gasstore" }), band("c", "3_Criminals", 8150, 12100, 4)) },
+    -- 2. la Milice part vers West Point ; les Criminels marchent vers le joueur
+    { b = merge(band("m", "12_Militia", 10900, 9250, 5), band("c", "3_Criminals", 8150, 11900, 4)) },
+    -- 3. Milice continue en véhicule ; Criminels toujours plus près
+    { b = merge(band("m", "12_Militia", 11150, 8800, 5, { vehicle = true }), band("c", "3_Criminals", 8150, 11700, 4)) },
+    -- 4. Milice arrivée, pille un supermarché ; Criminels traquent Lorenzo
+    { b = merge(band("m", "12_Militia", 11150, 8800, 5, { room = "grocery" }), band("c", "3_Criminals", 8160, 11500, 4, { target = "Lorenzo", targetType = "player" })) },
+    -- 5. Horde sur la Milice : combat + pertes ; un 3e clan l'attaque
+    { b = merge(band("m", "12_Militia", 11150, 8800, 2, { targetType = "zombie" }), band("b", "7_Bikers", 11180, 8800, 3, { targetType = "bandit", targetClan = "12_Militia" })),
+      z = { ["557,440"] = 12 } },
+    -- 6. plus rien de la Milice
+    { b = band("b", "7_Bikers", 11180, 8800, 3) },
+    { b = band("b", "7_Bikers", 11180, 8800, 3) },
+  }
+  for s, step in ipairs(steps) do
+    local reps = I.update(st, { bandits = step.b, zgrid = step.z or {}, players = player }, s * 30, 30)
+    for _, r in ipairs(reps) do out[#out + 1] = "scan " .. s .. "  " .. (I.formatReport(r)) end
+  end
+  -- Niveaux de détail pour un même événement
+  local r = { kind = "loot", clanName = "12_Militia", x = 10650, y = 9700, n = 5, room = "gasstore", seed = 1 }
+  for _, lvl in ipairs({ "full", "partial", "rumor" }) do out[#out + 1] = "niveau " .. lvl .. " : " .. (I.formatReport(r, lvl)) end
   return table.concat(out, "\\n")
 end''')
-print(run())
+for lang in ("FR", "EN"):
+    print("\n--- " + lang + " ---")
+    print(run(lang))
+
+if errors:
+    raise SystemExit(f"{errors} syntax error(s)")

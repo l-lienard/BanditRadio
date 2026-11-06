@@ -6,7 +6,7 @@ require "BanditRadio/BR_Config"
 
 BanditRadio.Window = ISCollapsableWindow:derive("BanditRadioWindow")
 local W = BanditRadio.Window
-local T = BanditRadio.T
+local function T(k) return BanditRadio.T(k) end
 
 local FONT = UIFont.Small
 local FONT_TITLE = UIFont.Medium
@@ -64,7 +64,7 @@ function W.open()
         return
     end
     local core = getCore()
-    local w, h = 480, 400
+    local w, h = 560, 420
     local win = W:new((core:getScreenWidth() - w) / 2, (core:getScreenHeight() - h) / 2, w, h)
     win:initialise()
     win:addToUIManager()
@@ -75,7 +75,7 @@ function W:new(x, y, width, height)
     local o = ISCollapsableWindow.new(self, x, y, width, height)
     o.title = T("title")
     o.resizable = true
-    o.minimumWidth, o.minimumHeight = 360, 260
+    o.minimumWidth, o.minimumHeight = 520, 260
     o.tab = "feed"
     o.scroll = 0
     return o
@@ -94,6 +94,16 @@ function W:createChildren()
     self.btnFactions.internal = "factions"
     self.btnFactions:initialise()
     self:addChild(self.btnFactions)
+
+    self.btnLang = ISButton:new(self.width - PAD - 60 - 6 - 70, top, 70, 22, "", self, W.onLang)
+    self.btnLang:initialise()
+    self.btnLang.anchorLeft, self.btnLang.anchorRight = false, true
+    self:addChild(self.btnLang)
+
+    self.btnMap = ISButton:new(self.width - PAD - 60 - 6 - 70 - 6 - 80, top, 80, 22, "", self, W.onMap)
+    self.btnMap:initialise()
+    self.btnMap.anchorLeft, self.btnMap.anchorRight = false, true
+    self:addChild(self.btnMap)
 
     self.btnPower = ISButton:new(self.width - PAD - 60, top, 60, 22, "", self, W.onPower)
     self.btnPower:initialise()
@@ -119,9 +129,22 @@ function W:onPower()
     self:refresh()
 end
 
+function W:onMap()
+    BanditRadio.Client.toggleMap()
+end
+
+function W:onLang()
+    BanditRadio.Client.cycleLanguage()
+end
+
 function W:refresh()
     if self:isVisible() then BanditRadio.Client.unread = 0 end
     if not self.btnPower then return end
+    self.title = T("title")
+    self.btnFeed:setTitle(T("tab_feed"))
+    self.btnFactions:setTitle(T("tab_factions"))
+    self.btnLang:setTitle(BanditRadio.langOverride or T("lang_auto"))
+    self.btnMap:setTitle(T("map_btn") .. ": " .. (BanditRadio.Map.enabled and T("on") or T("off")))
     local on = BanditRadio.Client.isListening()
     self.btnPower:setTitle(on and T("on") or T("off"))
     self.btnPower.backgroundColor = on and { r = 0.1, g = 0.45, b = 0.1, a = 1 } or { r = 0.35, g = 0.1, b = 0.1, a = 1 }
@@ -170,9 +193,9 @@ function W:render()
         end
         for _, e in ipairs(C.feed) do
             local col = BanditRadio.colorFor(e.kind)
-            if e.clarity < 0.4 then col = COL.dim end
+            if e.clarity < 0.4 or e.level == "rumor" then col = COL.dim end
             local prefix = e.time .. "  " .. (e.missed and (T("missed") .. " ") or "")
-            local lines = wrap(prefix .. e.text, bw - 16)
+            local lines = wrap(prefix .. C.entryText(e), bw - 16)
             for _, l in ipairs(lines) do
                 self:drawLine(l, y, col)
                 y = y + lh
@@ -182,10 +205,10 @@ function W:render()
     else
         if #C.factions == 0 then self:drawLine(T("no_faction"), y, COL.dim) end
         for _, f in ipairs(C.factions) do
-            self:drawLine(f.name, y, COL.new, FONT_TITLE)
+            self:drawLine(BanditRadio.prettyClan(f.name), y, COL.new, FONT_TITLE)
             y = y + lineHeight(FONT_TITLE)
             local weapons = string.format("%d %s / %d %s", f.fire, T("armed_fire"), f.melee, T("armed_melee"))
-            local last = f.lastX and BanditRadio.describePos(f.lastX, f.lastY) or T("unknown")
+            local last = f.lastX and BanditRadio.describePos(f.lastX, f.lastY, f.lastRoom) or T("unknown")
             local hostile = (f.hostile == nil) and T("unknown") or (f.hostile and T("yes") or T("no"))
             local rows = {
                 T("f_members") .. " : " .. f.members .. "   " .. T("f_groups") .. " : " .. f.groups,
